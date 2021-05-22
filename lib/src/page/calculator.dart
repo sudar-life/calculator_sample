@@ -1,3 +1,7 @@
+import 'package:calculator_sample/src/components/calc_button.dart';
+import 'package:calculator_sample/src/components/calc_disply.dart';
+import 'package:calculator_sample/src/constants/button_type.dart';
+import 'package:calculator_sample/src/model/calc_button.dart';
 import 'package:flutter/material.dart';
 
 class Calculator extends StatefulWidget {
@@ -10,93 +14,173 @@ class Calculator extends StatefulWidget {
 }
 
 class _CalculatorState extends State<Calculator> {
-  double result = 0;
-  double add() {
-    print("${widget.x}+${widget.y}=${widget.x + widget.y}");
-    return widget.x + widget.y;
+  Size? size;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    size = MediaQuery.of(context).size;
   }
 
-  double subtract() {
-    print("${widget.x}-${widget.y}=${widget.x - widget.y}");
-    return widget.x - widget.y;
+  double display = 0;
+
+  String x = "";
+  String y = "";
+  String oper = "";
+  List<String> stackValues = [];
+
+  List<CalcButton> buttonList = [
+    CalcButton("AC", CalcType.ETC),
+    CalcButton("+/-", CalcType.ETC),
+    CalcButton("%", CalcType.ETC),
+    CalcButton("÷", CalcType.Operator),
+    CalcButton("7", CalcType.Number),
+    CalcButton("8", CalcType.Number),
+    CalcButton("9", CalcType.Number),
+    CalcButton("x", CalcType.Operator),
+    CalcButton("4", CalcType.Number),
+    CalcButton("5", CalcType.Number),
+    CalcButton("6", CalcType.Number),
+    CalcButton("-", CalcType.Operator),
+    CalcButton("1", CalcType.Number),
+    CalcButton("2", CalcType.Number),
+    CalcButton("3", CalcType.Number),
+    CalcButton("+", CalcType.Operator),
+    CalcButton("0", CalcType.Number),
+    CalcButton(".", CalcType.Number),
+    CalcButton("=", CalcType.Operator),
+  ];
+
+  void _operatorEvent(String operatorValue) {
+    calcResult();
+    if (operatorValue != '=') oper = operatorValue;
+    if (x == "") return;
+    setState(() {
+      switch (operatorValue) {
+        case "÷":
+        case "x":
+        case "-":
+        case "+":
+          if (y != "") {
+            y = display.toString();
+          } else {
+            y = x;
+          }
+          break;
+        case "=":
+          calcResult();
+          break;
+      }
+      x = "";
+    });
   }
 
-  double multiplication() {
-    print("${widget.x}*${widget.y}=${widget.x * widget.y}");
-    return widget.x * widget.y;
+  void calcResult() {
+    setState(() {
+      if (x == "") {
+        x = y;
+        y = display.toString();
+      }
+      switch (oper) {
+        case "÷":
+          display = double.parse(y) / double.parse(x);
+          break;
+        case "x":
+          display = double.parse(y) * double.parse(x);
+          break;
+        case "-":
+          display = double.parse(y) - double.parse(x);
+          break;
+        case "+":
+          display = double.parse(y) + double.parse(x);
+          break;
+      }
+      oper = "=";
+      x = "";
+      y = display.toString();
+    });
   }
 
-  double division() {
-    print("${widget.x}/${widget.y}=${widget.x / widget.y}");
-    return widget.x / widget.y;
+  void initData() {
+    display = 0;
+    y = "";
+    x = "";
+  }
+
+  void _etcEvent(String etcValue) {
+    setState(() {
+      switch (etcValue) {
+        case "%":
+          if (x != '') display = double.parse(x);
+          display /= 100;
+          y = display.toString();
+          x = '';
+          break;
+        case "AC":
+          initData();
+          break;
+        case "+/-":
+          display *= -1;
+          x = '';
+          break;
+      }
+    });
+  }
+
+  void buttonEvent(CalcButton calcButton) {
+    switch (calcButton.theme) {
+      case CalcType.Operator:
+        _operatorEvent(calcButton.text);
+        break;
+      case CalcType.Number:
+        setState(() {
+          if (oper == "=") {
+            y = "";
+          }
+          x += calcButton.text;
+          display = double.parse(x);
+        });
+        break;
+      case CalcType.ETC:
+        _etcEvent(calcButton.text);
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.black,
       child: Column(
         children: [
-          Expanded(
-            child: Center(
-              child: Text(
-                result.toString(),
-                style: TextStyle(fontSize: 80),
-              ),
+          Container(
+            height: 250,
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: CalcDisplay(display: display),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  double value = add();
-                  setState(() {
-                    result = value;
-                  });
-                },
-                child: Text(
-                  "+",
-                  style: TextStyle(fontSize: 60),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  double value = subtract();
-                  setState(() {
-                    result = value;
-                  });
-                },
-                child: Text(
-                  "-",
-                  style: TextStyle(fontSize: 60),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  double value = multiplication();
-                  setState(() {
-                    result = value;
-                  });
-                },
-                child: Text(
-                  "X",
-                  style: TextStyle(fontSize: 60),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  double value = division();
-                  setState(() {
-                    result = value;
-                  });
-                },
-                child: Text(
-                  "/",
-                  style: TextStyle(fontSize: 60),
-                ),
-              ),
-            ],
-          )
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: GridView.builder(
+                  padding: const EdgeInsets.all(5.0),
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                  ),
+                  itemCount: buttonList.length,
+                  itemBuilder: (_, index) {
+                    return CalcButtonWidget(
+                      onTap: () {
+                        buttonEvent(buttonList[index]);
+                      },
+                      calcButton: buttonList[index],
+                    );
+                  }),
+            ),
+          ),
         ],
       ),
     );
