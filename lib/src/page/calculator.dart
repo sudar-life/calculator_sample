@@ -5,9 +5,7 @@ import 'package:calculator_sample/src/model/calc_button.dart';
 import 'package:flutter/material.dart';
 
 class Calculator extends StatefulWidget {
-  double x;
-  double y;
-  Calculator({Key? key, required this.x, required this.y}) : super(key: key);
+  Calculator({Key? key}) : super(key: key);
 
   @override
   _CalculatorState createState() => _CalculatorState();
