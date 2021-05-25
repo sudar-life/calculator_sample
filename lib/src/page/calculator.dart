@@ -54,7 +54,6 @@ class _CalculatorState extends State<Calculator> {
   void _operatorEvent(String operatorValue) {
     calcResult();
     if (operatorValue != '=') oper = operatorValue;
-    if (x == "") return;
     setState(() {
       switch (operatorValue) {
         case "÷":
@@ -105,6 +104,7 @@ class _CalculatorState extends State<Calculator> {
     display = 0;
     y = "";
     x = "";
+    oper = "";
   }
 
   void _etcEvent(String etcValue) {
@@ -137,7 +137,11 @@ class _CalculatorState extends State<Calculator> {
           if (oper == "=") {
             y = "";
           }
-          x += calcButton.text;
+          var calcText = calcButton.text;
+          if (calcButton.text == "." && x.contains('.')) {
+            calcText = "";
+          }
+          x += calcText;
           display = double.parse(x);
         });
         break;
